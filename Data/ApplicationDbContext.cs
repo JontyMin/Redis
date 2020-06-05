@@ -11,6 +11,8 @@ namespace Redis.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            
         }
+        public DbSet<Products> Product { get; set; }
     }
 }

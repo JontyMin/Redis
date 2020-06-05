@@ -1,0 +1,8 @@
+﻿
+@model StackExchange.Redis.RedisValue[]
+<ul class="list-group">
+	@foreach (var p in Model)
+	{
+		<li class="list-group-item">@p</li>
+	}
+</ul>
