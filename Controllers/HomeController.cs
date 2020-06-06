@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Redis.Data;
 using Redis.Models;
 using StackExchange.Redis;
@@ -19,13 +23,18 @@ namespace Redis.Controllers
         private readonly IConnectionMultiplexer _redis;
         private readonly IDatabase _db;
         private readonly ApplicationDbContext _context;
+        private readonly IDistributedCache _distributedCache;
 
-        public HomeController(ILogger<HomeController> logger,IConnectionMultiplexer redis,ApplicationDbContext context)
+        public HomeController(ILogger<HomeController> logger,
+            IConnectionMultiplexer redis,
+            ApplicationDbContext context,
+            IDistributedCache distributedCache)
         {
             _logger = logger;
             _redis = redis;
             _db = _redis.GetDatabase();
             _context = context;
+            _distributedCache = distributedCache;
         }
 
         [HttpGet]
@@ -115,8 +124,30 @@ namespace Redis.Controllers
         public IActionResult Index()
         {
             _db.StringSet("fullName", "Jonty Wang");
-            var name = _db.StringGet("fullName");
-            return View("Index",name);
+            //var name = _db.StringGet("fullName");
+
+            var value = _distributedCache.Get("name-key");
+            if (value == null)
+            {
+                //没有获取数据
+                var obj = new Dictionary<string,string>
+                {
+                    ["FirstName"]="Nike",
+                    ["LastName"]="Carter"
+                };
+                var str = JsonConvert.SerializeObject(obj);
+                byte[] encoded = Encoding.UTF8.GetBytes(str);
+                var options = new DistributedCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromSeconds(30));
+                _distributedCache.Set("name-key",encoded,options);
+                return View(obj);
+            }
+            else
+            {
+                var str = Encoding.UTF8.GetString(value);
+                var obj = JsonConvert.DeserializeObject<Dictionary<string, string>>(str);
+                return View(obj);
+
+            }
         }
 
         public IActionResult Privacy()

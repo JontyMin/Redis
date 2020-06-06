@@ -36,6 +36,11 @@ namespace Redis
             services.AddRazorPages();
 
             services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost"));
+            services.AddDistributedRedisCache(options =>
+            {
+                options.Configuration = "localhost";
+                options.InstanceName = "RedisInstance";//ÊµÀýÃû
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

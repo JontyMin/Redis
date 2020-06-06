@@ -1,9 +1,15 @@
-﻿@model StackExchange.Redis.RedisValue
+﻿@model Dictionary<string,string>
 @{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome @Model</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+	<p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @foreach (var kv in Model)
+    {
+	    <h3>
+            @kv.Key : @kv.Value
+	    </h3>
+    }
 </div>
